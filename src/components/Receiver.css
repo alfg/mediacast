@@ -1,0 +1,9 @@
+.Video {
+    width: 100%;
+}
+
+.debug-log {
+    position: absolute;
+    top: 200px;
+    left: 10px;
+}
