@@ -5,7 +5,10 @@ import './Sender.css';
 class Player extends Component {
   constructor(props) {
       super(props);
-      this.state = {};
+      this.state = {
+        mediaUrl: 'https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-widevine.ism/.mpd',
+        licenseUrl: "https://widevine-proxy.appspot.com/proxy",
+      };
 
       this.namespace = 'urn:x-cast:com.google.cast.mediacast';
       this.applicationId = 'B24212A8';
@@ -29,7 +32,6 @@ class Player extends Component {
     this._cast.framework.CastContext.getInstance().setOptions({
         receiverApplicationId: this.applicationId,
         autoJoinPolicy: this._chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-        // receiverApplicationId: this._chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
     });
   }
 
@@ -38,31 +40,29 @@ class Player extends Component {
   }
 
   loadMedia = () => {
-    // const url = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-    // const url = 'https://s3.amazonaws.com/mediacast-public/video/LG_4K_View-the-Feeling.mp4'; // HEVC
-    const url = 'https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.mpd'; // DASH/Clear
-    // const url = 'https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-widevine.ism/.mpd'; // DASH/Widevine
+
+    const { mediaUrl, licenseUrl } = this.state;
+
     const contentType = 'video/mp4';
     const castSession = this._cast.framework.CastContext.getInstance().getCurrentSession();
-    const mediaInfo = new this._chrome.cast.media.MediaInfo(url, contentType);
+    const mediaInfo = new this._chrome.cast.media.MediaInfo(mediaUrl, contentType);
+    mediaInfo.customData = {
+      licenseUrl 
+    };
     const request = new this._chrome.cast.media.LoadRequest(mediaInfo);
 
-    castSession.loadMedia(request).then(function() {
+    castSession.loadMedia(request).then(() => {
       console.log('Load succeed');
+      castSession.sendMessage(this.namespace, "trying to load media");
     }, function(err) {
         console.log('Error:', err);
     });
-
-    castSession.sendMessage(this.namespace, "testing");
   }
 
   playPause = () => {
     const player = new this._cast.framework.RemotePlayer();
     const playerController = new this._cast.framework.RemotePlayerController(player);
     playerController.playOrPause();
-
-    const castSession = this._cast.framework.CastContext.getInstance().getCurrentSession();
-    castSession.sendMessage(this.namespace, "playing");
   }
 
   testMessage = () => {
@@ -75,12 +75,24 @@ class Player extends Component {
       <div className="Player">
           <h1>player</h1>
           <div>
-            <TextField hintText="Media URL" />
-            <TextField hintText="License Server URL" />
+            <TextField
+              hintText="Media URL"
+              floatingLabelText="Media URL"
+              defaultValue={this.state.mediaUrl}
+              style={ { width: '80%' } }
+            />
+          </div>
+          <div>
+            <TextField
+              hintText="License Server URL"
+              floatingLabelText="License Server URL"
+              defaultValue={this.state.licenseUrl}
+              style={ { width: '80%' } }
+            />
           </div>
           <div>
             <Divider />
-            <button is="google-cast-button"></button>
+            <span className="Cast-Button"><button is="google-cast-button"></button></span>
             <RaisedButton className="Button" label="Connect" onClick={this.connect} /> 
             <RaisedButton className="Button" label="Load Media" onClick={this.loadMedia} />
             <RaisedButton className="Button" label="Test Message" onClick={this.testMessage} />
@@ -91,6 +103,5 @@ class Player extends Component {
   }
 }
 
-// <button className="Cast-Button" is="google-cast-button"></button>
 
 export default Player;

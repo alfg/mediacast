@@ -15,49 +15,25 @@ class Receiver extends Component {
       this._player = window.player;
       this._castReceiverManager = null;
       this._messageBus = null;
-
-      // this.init();
+      this._mediaManager = null;
+      this.video = null;
   }
 
   componentDidMount() {
-    console.log('Loading...');
-
     this._cast.receiver.logger.setLevelValue(this._cast.receiver.LoggerLevel.DEBUG);
     this._cast.player.api.setLoggerLevel(this._cast.player.api.LoggerLevel.DEBUG);
 
-
-
-
-
-    // window.mediaManager = new cast.receiver.MediaManager(mediaElement);
-    // window.defaultOnLoad = mediaManager.onLoad.bind(mediaManager);
-    // mediaManager.onLoad = function(event) {
-    //   if (window.player !== null) {
-    //     player.unload();
-    //     window.player = null;
-    //   }
-    // }
-    // host.onError = function(errorCode) {
-    //   console.log("Fatal Error - " + errorCode);
-    //   if (window.player) {
-    //     window.player.unload();
-    //     window.player = null;
-    //   }
-    // };
-
-    // const protocol = cast.player.api.CreateDashStreamingProtocol(host);
-    // window.player = new cast.player.api.Player(host);
-    // window.player.load(protocol, initStart);
-
-    // window.player = null;
-
     this._castReceiverManager = this._cast.receiver.CastReceiverManager.getInstance();
 
-    // Binding receiver manager events.
-    // self._castReceiverManager.onReady = self.receiverManager_onReady.bind(this);
-    // self._castReceiverManager.onSenderConnected = self.receiverManager_onSenderConnected.bind(this);
-    // self._castReceiverManager.onSenderDisconnected = self.receiverManager_onSenderDisconnected.bind(this);
-    // self._castReceiverManager.onSystemVolumeChanged = self.receiverManager_onSystemVolumeChanged.bind(this);
+    const mediaElement = this.video;
+    this._mediaManager = new this._cast.receiver.MediaManager(mediaElement);
+    this._mediaManager.onLoad = (event) => {
+      console.log('media', event);
+
+      const url = event.data.media.contentId;
+      const licenseUrl = event.data.media.customData.licenseUrl;
+      this.loadVideo(url, licenseUrl);
+    }
 
     // Create a CastMessageBus to handle messages for a custom namespace.
     this._messageBus = this._castReceiverManager.getCastMessageBus(this.namespace);
@@ -68,11 +44,8 @@ class Receiver extends Component {
     this._castReceiverManager.start({ statusText: "Application starting..."});
   }
 
-  loadVideo() {
+  loadVideo(url, licenseUrl) {
     const mediaElement = this.video;
-    // const url = 'https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel.ism/.mpd';
-    const url = 'https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-widevine.ism/.mpd'; // Widevine.
-    const licenseUrl = 'https://widevine-proxy.appspot.com/proxy';
     const host = new this._cast.player.api.Host({ 'mediaElement': mediaElement, 'url': url, 'licenseUrl': licenseUrl });
 
     host.onError = function(errorCode) {
@@ -85,9 +58,10 @@ class Receiver extends Component {
 
     this._player = new this._cast.player.api.Player(host);
 
-
+    // DASH Protocol.
     const protocol = this._cast.player.api.CreateDashStreamingProtocol(host);
 
+    // Load content at 0 time and play.
     this._player.load(protocol, 0);
     this._player.playWhenHaveEnoughData();
   }
