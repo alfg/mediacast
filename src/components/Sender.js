@@ -43,7 +43,7 @@ class Player extends Component {
 
     const { mediaUrl, licenseUrl } = this.state;
 
-    const contentType = 'video/mp4';
+    const contentType = 'application/dash+xml';
     const castSession = this._cast.framework.CastContext.getInstance().getCurrentSession();
     const mediaInfo = new this._chrome.cast.media.MediaInfo(mediaUrl, contentType);
     mediaInfo.customData = {
@@ -70,6 +70,14 @@ class Player extends Component {
     castSession.sendMessage(this.namespace, "testing");
   }
 
+  handleChangeMediaUrl = (event) => {
+    this.setState({ mediaUrl: event.target.value });
+  }
+
+  handleChangeLicenseUrl = (event) => {
+    this.setState({ licenseUrl: event.target.value });
+  }
+
   render() {
     return (
       <div className="Player">
@@ -80,6 +88,7 @@ class Player extends Component {
               floatingLabelText="Media URL"
               defaultValue={this.state.mediaUrl}
               style={ { width: '80%' } }
+              onChange={this.handleChangeMediaUrl}
             />
           </div>
           <div>
@@ -88,6 +97,7 @@ class Player extends Component {
               floatingLabelText="License Server URL"
               defaultValue={this.state.licenseUrl}
               style={ { width: '80%' } }
+              onChange={this.handleChangeLicenseUrl}
             />
           </div>
           <div>
