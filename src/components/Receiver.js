@@ -58,8 +58,17 @@ class Receiver extends Component {
 
     this._player = new this._cast.player.api.Player(host);
 
-    // DASH Protocol.
-    const protocol = this._cast.player.api.CreateDashStreamingProtocol(host);
+
+    const ext = url.substring(url.lastIndexOf('.'), url.length);
+    let protocol = null;
+
+    if (ext.includes('.mpd')) {
+      protocol = this._cast.player.api.CreateDashStreamingProtocol(host);
+    } else if (ext.includes('.ism')) {
+      protocol = this._cast.player.api.CreateSmoothStreamingProtocol(host);
+    } else if (ext.includes('.hls')) {
+      protocol = this._cast.player.api.CreateHlsProtocol(host);
+    }
 
     // Load content at 0 time and play.
     this._player.load(protocol, 0);
