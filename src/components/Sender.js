@@ -67,7 +67,7 @@ class Player extends Component {
 
   testMessage = () => {
     const castSession = this._cast.framework.CastContext.getInstance().getCurrentSession();
-    castSession.sendMessage(this.namespace, "testing");
+    castSession.sendMessage(this.namespace, "Test Message");
   }
 
   handleChangeMediaUrl = (event) => {

@@ -1,29 +1,26 @@
 body {
-    overflow:hidden;
-    background-color: #fff;
+    overflow: hidden;
 }
 
-.App {
+.Receiver-App {
+  background: black;
+  color: white;
+  height: 100%;
   text-align: center;
 }
 
-.App-logo {
+.Receiver-App-logo {
   animation: App-logo-spin infinite 20s linear;
   height: 80px;
 }
 
-.App-header {
+.Receiver-App-header {
   background-color: #222;
   height: 150px;
   padding: 20px;
   color: white;
 }
 
-.App-intro {
+.Receiver-App-intro {
   font-size: large;
-}
-
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }

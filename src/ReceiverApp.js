@@ -5,7 +5,7 @@ import Receiver from './components/Receiver.js';
 class ReceiverApp extends Component {
   render() {
     return (
-      <div className="App">
+      <div className="Receiver-App">
         <Receiver />
       </div>
     );
