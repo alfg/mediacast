@@ -11,7 +11,7 @@ injectTapEventPlugin();
 const path = window.location.pathname;
 
 let app = <MuiThemeProvider><SenderApp /></MuiThemeProvider>;
-if (path === '/receiver') {
+if (path === '/receiver' || path === '/mediacast/receiver') {
   app = <ReceiverApp />
 }
 
