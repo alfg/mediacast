@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './Receiver.css';
 
+
 class Receiver extends Component {
   constructor(props) {
       super(props);
@@ -17,6 +18,11 @@ class Receiver extends Component {
       this._messageBus = null;
       this._mediaManager = null;
       this.video = null;
+
+      this.drms = {
+        widevine: this._cast.player.api.ContentProtection.WIDEVINE,
+        playready: this._cast.player.api.ContentProtection.PLAYREADY,
+      }
   }
 
   componentDidMount() {
@@ -32,7 +38,8 @@ class Receiver extends Component {
 
       const url = event.data.media.contentId;
       const licenseUrl = event.data.media.customData.licenseUrl;
-      this.loadVideo(url, licenseUrl);
+      const drm = event.data.media.customData.drm;
+      this.loadVideo(url, licenseUrl, drm);
     }
 
     // Create a CastMessageBus to handle messages for a custom namespace.
@@ -44,9 +51,15 @@ class Receiver extends Component {
     this._castReceiverManager.start({ statusText: "Application starting..."});
   }
 
-  loadVideo(url, licenseUrl) {
+  loadVideo(url, licenseUrl, drm) {
+    console.log(this._cast.player.api.ContentProtection);
     const mediaElement = this.video;
-    const host = new this._cast.player.api.Host({ 'mediaElement': mediaElement, 'url': url, 'licenseUrl': licenseUrl });
+    const host = new this._cast.player.api.Host({
+      'mediaElement': mediaElement,
+      'url': url,
+      'licenseUrl': licenseUrl,
+      'protectionSystem': this.drms[drm],
+    });
 
     host.onError = function(errorCode) {
       console.log("Fatal Error - " + errorCode);

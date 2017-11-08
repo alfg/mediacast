@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import injectTapEventPlugin from 'react-tap-event-plugin';
+// import injectTapEventPlugin from 'react-tap-event-plugin';
 import SenderApp from './SenderApp';
 import ReceiverApp from './ReceiverApp';
 import './index.css';
 
-injectTapEventPlugin();
+// injectTapEventPlugin();
 
 const path = window.location.pathname;
 
