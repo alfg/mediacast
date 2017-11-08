@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { RaisedButton, TextField, Divider } from 'material-ui';
+import { RaisedButton, TextField, Divider, SelectField, MenuItem } from 'material-ui';
 import './Sender.css';
 
 class Player extends Component {
@@ -8,6 +8,7 @@ class Player extends Component {
       this.state = {
         mediaUrl: 'https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-widevine.ism/.mpd',
         licenseUrl: "https://widevine-proxy.appspot.com/proxy",
+        drm: null,
       };
 
       this.namespace = 'urn:x-cast:com.google.cast.mediacast';
@@ -36,19 +37,19 @@ class Player extends Component {
   }
 
   connect = () => {
-    this._cast.framework.CastContext.getInstance().requestSession();
+    if (this._cast) {
+      this._cast.framework.CastContext.getInstance().requestSession();
+    }
   }
 
   loadMedia = () => {
 
-    const { mediaUrl, licenseUrl } = this.state;
+    const { mediaUrl, licenseUrl, drm } = this.state;
 
     const contentType = 'application/dash+xml';
     const castSession = this._cast.framework.CastContext.getInstance().getCurrentSession();
     const mediaInfo = new this._chrome.cast.media.MediaInfo(mediaUrl, contentType);
-    mediaInfo.customData = {
-      licenseUrl 
-    };
+    mediaInfo.customData = { licenseUrl, drm };
     const request = new this._chrome.cast.media.LoadRequest(mediaInfo);
 
     castSession.loadMedia(request).then(() => {
@@ -78,6 +79,8 @@ class Player extends Component {
     this.setState({ licenseUrl: event.target.value });
   }
 
+  handleDrmChange = (event, index, value) => this.setState({drm: value});
+
   render() {
     return (
       <div className="Player">
@@ -99,6 +102,17 @@ class Player extends Component {
               style={ { width: '80%' } }
               onChange={this.handleChangeLicenseUrl}
             />
+          </div>
+          <div>
+            <SelectField
+              floatingLabelText="DRM"
+              value={this.state.drm}
+              onChange={this.handleDrmChange}
+             >
+              <MenuItem value="" primaryText="None" />
+              <MenuItem value="widevine" primaryText="Widevine" />
+              <MenuItem value="playready" primaryText="Playready" />
+            </SelectField>
           </div>
           <div>
             <Divider />
