@@ -79,8 +79,8 @@ class Receiver extends Component {
       protocol = this._cast.player.api.CreateDashStreamingProtocol(host);
     } else if (ext.includes('.ism')) {
       protocol = this._cast.player.api.CreateSmoothStreamingProtocol(host);
-    } else if (ext.includes('.hls')) {
-      protocol = this._cast.player.api.CreateHlsProtocol(host);
+    } else if (ext.includes('.m3u8')) {
+      protocol = this._cast.player.api.CreateHlsStreamingProtocol(host);
     }
 
     // Load content at 0 time and play.
