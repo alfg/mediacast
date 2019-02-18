@@ -5,28 +5,28 @@
     <div class="controls">
     <label>Media URL</label>
     <input
+      v-model="mediaUrl"
       class="u-full-width"
       type="text"
-      value="https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-widevine.ism/.mpd"
     />
 
     <label>License Server URL</label>
     <input
+      v-model="licenseUrl"
       class="u-full-width"
       type="text"
-      value="https://widevine-proxy.appspot.com/proxy"
     />
 
     <label for="drm">DRM</label>
-    <select class="u-full-width" id="drm">
+    <select v-model="drm" class="u-full-width" id="drm">
       <option value="none">None</option>
       <option value="widevine">Widevine</option>
       <option value="playready">PlayReady</option>
     </select>
 
-    <button v-on:click="connect">Connect</button>
-    <button>Load Media</button>
-    <button>Play/Pause</button>
+    <button v-on:click="connect" class="button-primary">Connect</button>
+    <button v-on:click="loadMedia">Load Media</button>
+    <button v-on:click="playPause">Play/Pause</button>
     <button v-on:click="testMessage">Test Message</button>
      </div>
   </div>
@@ -39,12 +39,6 @@ import '@/assets/skeleton.css';
 const namespace = 'urn:x-cast:com.google.cast.mediacast';
 const applicationId = 'B24212A8';
 
-      // _cast: window.cast,
-      // _chrome: window.chrome,
-      // _session: null,
-
-const _cast = window.cast;
-
 export default {
   name: 'sender',
   components: {
@@ -53,7 +47,7 @@ export default {
     return {
       mediaUrl: 'https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-widevine.ism/.mpd',
       licenseUrl: "https://widevine-proxy.appspot.com/proxy",
-      drm: null,
+      drm: "widevine",
       loaded: false,
     }
   },
@@ -82,8 +76,31 @@ export default {
         cast.framework.CastContext.getInstance().requestSession();
       }
     },
+    loadMedia() {
+      const { mediaUrl, licenseUrl, drm } = this;
+
+      const contentType = 'application/dash+xml';
+      const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
+      const mediaInfo = new window.chrome.cast.media.MediaInfo(mediaUrl, contentType);
+      mediaInfo.customData = { licenseUrl, drm };
+      const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+
+      console.log('trying to load media');
+      castSession.loadMedia(request).then(() => {
+        console.log('Load succeed');
+      }, function(err) {
+        console.log('Error:', err);
+      });
+    },
+    playPause() {
+      console.log('[mediacast] - playPause');
+      const player = new window.cast.framework.RemotePlayer();
+      const playerController = new window.cast.framework.RemotePlayerController(player);
+      playerController.playOrPause();
+    },
     testMessage() {
       console.log('sending test message');
+      console.log(this.mediaUrl, this.licenseUrl, this.drm)
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
       castSession.sendMessage(namespace, "Test Message");
     }

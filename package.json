@@ -29,7 +29,13 @@
       "plugin:vue/essential",
       "eslint:recommended"
     ],
-    "rules": {},
+    "rules": {
+      "no-console": "off"
+    },
+    "globals": {
+      "cast": "readonly",
+      "chrome": "readonly"
+    },
     "parserOptions": {
       "parser": "babel-eslint"
     }
