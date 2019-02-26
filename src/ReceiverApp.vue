@@ -1,7 +1,6 @@
 <template>
   <div class="receiver-app">
-      <h1>Receiver</h1>
-      <Receiver />
+    <Receiver />
   </div>
 </template>
 

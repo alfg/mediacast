@@ -1,6 +1,6 @@
 <template>
   <div class="sender container">
-    <h1>Chromecast Sender</h1>
+    <h1>MediaCast - Sender</h1>
 
     <div class="controls">
     <label>Media URL</label>
@@ -64,18 +64,21 @@ export default {
           }
       };
     },
+
     initializeCastApi() {
-      console.log('Initializing cast api', applicationId);
+      console.log('[mediacast] - Initializing Cast API: ', applicationId);
       window.cast.framework.CastContext.getInstance().setOptions({
           receiverApplicationId: applicationId,
           autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
       });
     },
+
     connect() {
       if (cast) {
         cast.framework.CastContext.getInstance().requestSession();
       }
     },
+
     loadMedia() {
       const { mediaUrl, licenseUrl, drm } = this;
 
@@ -85,24 +88,32 @@ export default {
       mediaInfo.customData = { licenseUrl, drm };
       const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
 
-      console.log('trying to load media');
+      this.sendMessage('trying to load mediaUrl: ' + mediaUrl);
       castSession.loadMedia(request).then(() => {
-        console.log('Load succeed');
-      }, function(err) {
-        console.log('Error:', err);
+        console.log('[mediacast] - Load succeeded');
+      }, (err) => {
+        console.log('[mediacast] - Error:' + err);
       });
     },
+
     playPause() {
       console.log('[mediacast] - playPause');
+      this.sendMessage("playPause");
+
       const player = new window.cast.framework.RemotePlayer();
       const playerController = new window.cast.framework.RemotePlayerController(player);
       playerController.playOrPause();
     },
+
     testMessage() {
-      console.log('sending test message');
-      console.log(this.mediaUrl, this.licenseUrl, this.drm)
+      console.log('[mediacast] - sending test message');
+      this.sendMessage("Test");
+    },
+
+    sendMessage(message) {
+      console.log('[mediacast:sendMessage] - ' + message);
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
-      castSession.sendMessage(namespace, "Test Message");
+      castSession.sendMessage(namespace, { message: message });
     }
   }
 }
