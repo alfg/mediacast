@@ -26,18 +26,19 @@
 
     <button v-on:click="connect" class="button-primary">Connect</button>
     <button v-on:click="loadMedia">Load Media</button>
-    <button v-on:click="playPause">Play/Pause</button>
+    <button v-on:click="play">Play</button>
+    <button v-on:click="pause">Pause</button>
     <button v-on:click="testMessage">Test Message</button>
      </div>
   </div>
 </template>
 
 <script>
+import config from '../config';
 import '@/assets/normalize.css';
 import '@/assets/skeleton.css';
 
-const namespace = 'urn:x-cast:com.google.cast.mediacast';
-const applicationId = 'B24212A8';
+const { namespace, applicationId } = config;
 
 export default {
   name: 'sender',
@@ -96,13 +97,30 @@ export default {
       });
     },
 
-    playPause() {
-      console.log('[mediacast] - playPause');
-      this.sendMessage("playPause");
+    play() {
+      console.log('[mediacast] - play');
+      this.sendMessage("play");
 
-      const player = new window.cast.framework.RemotePlayer();
-      const playerController = new window.cast.framework.RemotePlayerController(player);
-      playerController.playOrPause();
+      const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
+      const media = castSession.getMediaSession();
+      castSession.sendMessage('urn:x-cast:com.google.cast.media', {
+        type: 'PLAY',
+        requestId: 1,
+        mediaSessionId: media.mediaSessionId
+      })
+    },
+
+    pause() {
+      console.log('[mediacast] - pause');
+      this.sendMessage("pause");
+
+      const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
+      const media = castSession.getMediaSession();
+      castSession.sendMessage('urn:x-cast:com.google.cast.media', {
+        type: 'PAUSE',
+        requestId: 1,
+        mediaSessionId: media.mediaSessionId
+      })
     },
 
     testMessage() {

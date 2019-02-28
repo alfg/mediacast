@@ -1,20 +1,25 @@
 <template>
   <div class="receiver">
-    <div class="stats">
-      bitrate: {{ stats.bitrate }}
+    <div class="debug-panel">
+      <div class="debug-stats">
+        bitrate: {{ stats.bitrate }}
+      </div>
+
+      <div class="debug-log" ref="debugLog">
+        <div v-for="m in debugLog"
+          :key="m.id"
+          >{{ m }}</div>
+      </div>
     </div>
 
-    <div class="debug-log">
-      <div v-for="m in debugLog"
-        :key="m.id"
-        >{{ m }}</div>
-    </div>
     <cast-media-player></cast-media-player>
   </div>
 </template>
 
 <script>
-const namespace = 'urn:x-cast:com.google.cast.mediacast';
+import config from '../config';
+
+const { namespace } = config;
 
 export default {
   name: 'receiver',
@@ -43,6 +48,9 @@ export default {
       // Set player events and config.
       this.setPlayerEvents(player);
 
+      // Set debug log.
+      this.setDebugLog();
+
       // Listen for custom messages.
       context.addCustomMessageListener(namespace, this.onCustomMessage);
 
@@ -56,9 +64,22 @@ export default {
       (loadRequestData) => {
         this.log('[mediacast:setPlayerEvents] - player.setMessageInterceptor:LOAD');
         this.log(JSON.stringify(loadRequestData.media));
+
         const url = loadRequestData.media.contentId;
         const licenseUrl = loadRequestData.media.customData.licenseUrl;
         const drm = loadRequestData.media.customData.drm;
+        const ext = url.substring(url.lastIndexOf('.'), url.length);
+
+        loadRequestData.media.contentType = 'video/mp4';
+
+        if (ext.includes('.mpd')) {
+          loadRequestData.media.contentType = 'application/dash+xml';
+        } else if (ext.includes('.ism')) {
+          loadRequestData.media.contentType = 'application/vnd.ms-sstr+xml';
+        } else if (ext.includes('.m3u8')) {
+          loadRequestData.media.contentType = 'application/vnd.apple.mpegurl';
+        }
+
 
         player.setMediaPlaybackInfoHandler((loadRequest, playbackConfig) => {
           playbackConfig.licenseUrl = licenseUrl;
@@ -84,6 +105,17 @@ export default {
         widevine: cast.framework.ContentProtection.WIDEVINE,
         playready: cast.framework.ContentProtection.PLAYREADY,
       }
+    },
+
+    setDebugLog() {
+      // Keep debug log scrolled to the bottom;
+      const w = this.$refs.debugLog;
+      setInterval(() => {
+        const scrolled = w.scrollHeight - w.clientHeight <= w.scrollTop + 1;
+        if (!scrolled) {
+          w.scrollTop = w.scrollHeight - w.clientHeight;
+        }
+      }, 1000);
     },
 
     // init() {
@@ -187,25 +219,30 @@ export default {
     z-index: 0;
 }
 
-.debug-log {
-    position: absolute;
-    top: 200px;
-    left: 10px;
-    margin-bottom: 3px;
-    text-align: left;
-    width: 50%;
-    z-index: 1;
+.debug-panel {
+  height: 100%;
+  width: 40%;
+  padding-left: 10px;
+  padding-top: 10px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
 }
 
-.stats {
-    position: absolute;
-    top: 10px;
-    left: 10px;
+.debug-stats {
     text-align: left;
-    width: 50%;
-    height: 200px;
-    z-index: 1;
+    width: 100%;
+    height: 20%;
 }
+
+.debug-log {
+    overflow: auto;
+    text-align: left;
+    width: 100%;
+    height: 75%;
+}
+
 </style>
 
 
