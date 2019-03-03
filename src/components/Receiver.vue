@@ -1,6 +1,6 @@
 <template>
   <div class="receiver">
-    <div class="debug-panel">
+    <div class="debug-panel" v-if="debugEnabled">
       <div class="debug-stats">
         bitrate: {{ stats.bitrate }}
       </div>
@@ -27,6 +27,7 @@ export default {
   data() {
     return {
       drms: {},
+      debugEnabled: true,
       debugLog: [],
       stats: {
         bitrate: 0
@@ -118,83 +119,21 @@ export default {
       }, 1000);
     },
 
-    // init() {
-    //   this.log('[mediacast:init] - Initializing.');
-    //   this.cast.receiver.logger.setLevelValue(this.cast.receiver.LoggerLevel.DEBUG);
-    //   this.cast.player.api.setLoggerLevel(this.cast.player.api.LoggerLevel.DEBUG);
-
-    //   this.castReceiverManager = this.cast.receiver.CastReceiverManager.getInstance();
-
-    //   const mediaElement = this.$refs.video;
-    //   this.mediaManager = new this.cast.receiver.MediaManager(mediaElement);
-    //   this.mediaManager.onLoad = (event) => {
-    //     const url = event.data.media.contentId;
-    //     const licenseUrl = event.data.media.customData.licenseUrl;
-    //     const drm = event.data.media.customData.drm;
-    //     this.loadVideo(url, licenseUrl, drm);
-    //   }
-
-    //   // Create a CastMessageBus to handle messages for a custom namespace.
-    //   this.messageBus = this.castReceiverManager.getCastMessageBus(namespace);
-    //   this.messageBus.onMessage = this.messageBus_onMessage.bind(this);
-
-      
-    //   this.log('[mediacast:init] - Application is ready, starting system.');
-    //   this.castReceiverManager.start({ statusText: "Application starting..."});
-    // },
-
-    // loadVideo(url, licenseUrl, drm) {
-    //   this.log('[mediacast:loadVideo] - Loading video...');
-    //   this.log('[mediacast:loadVideo:url] - ' + url);
-    //   this.log('[mediacast:loadVideo:licenseUrl] - ' + licenseUrl);
-    //   this.log('[mediacast:loadVideo:drm] - ' + drm);
-
-    //   const mediaElement = this.$refs.video;
-    //   const host = new this.cast.player.api.Host({
-    //     'mediaElement': mediaElement,
-    //     'url': url,
-    //     'licenseUrl': licenseUrl,
-    //     'protectionSystem': drms[drm],
-    //   });
-
-    //   host.onError = function(errorCode) {
-    //     this.log('[mediacast:loadVideo] - Fatal Error - ' + errorCode);
-    //     if (window.player) {
-    //       window.player.unload();
-    //       window.player = null;
-    //     }
-    //   };
-
-    //   const player = new this.cast.player.api.Player(host);
-    //   const ext = url.substring(url.lastIndexOf('.'), url.length);
-    //   let protocol = null;
-
-    //   if (ext.includes('.mpd')) {
-    //     protocol = this.cast.player.api.CreateDashStreamingProtocol(host);
-    //   } else if (ext.includes('.ism')) {
-    //     protocol = this.cast.player.api.CreateSmoothStreamingProtocol(host);
-    //   } else if (ext.includes('.m3u8')) {
-    //     protocol = this.cast.player.api.CreateHlsStreamingProtocol(host);
-    //   }
-
-    //   // Load content at 0 time and play.
-    //   player.load(protocol, 0);
-    //   player.playWhenHaveEnoughData();
-
-    //   // Bind events.
-    //   const context = this.cast.framework.CastReceiverContext.getInstance();
-    //   const playerManager = context.getPlayerManager();
-    //   playerManager.addEventListener(
-    //     this.cast.framework.events.EventType.PLAYER_LOAD_COMPLETE, () => {
-    //       const audioTracksManager = playerManager.getAudioTracksManager();
-    //       const tracks = audioTracksManager.getTracks();
-    //       console.log(tracks);
-    //     });
-    // },
-
     onCustomMessage(event) {
       console.log('Message [' + event.senderId + ']: ' + JSON.stringify(event.data));
       this.log('[mediacast:onCustomMessage] - ' + event.data.message);
+
+      // Check if action is received from sender.
+      if (event.data.action) {
+        switch (event.data.action) {
+          case 'setDebugPanel':
+            this.debugEnabled = event.data.message;
+            break;
+        
+          default:
+            break;
+        }
+      }
 
       // Inform all senders on the CastMessageBus of the incoming message event.
       // Sender message listener will be invoked.

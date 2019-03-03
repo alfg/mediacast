@@ -3,33 +3,38 @@
     <h1>MediaCast - Sender</h1>
 
     <div class="controls">
-    <label>Media URL</label>
-    <input
-      v-model="mediaUrl"
-      class="u-full-width"
-      type="text"
-    />
+      <label>Media URL</label>
+      <input
+        v-model="mediaUrl"
+        class="u-full-width"
+        type="text"
+      />
 
-    <label>License Server URL</label>
-    <input
-      v-model="licenseUrl"
-      class="u-full-width"
-      type="text"
-    />
+      <label>License Server URL</label>
+      <input
+        v-model="licenseUrl"
+        class="u-full-width"
+        type="text"
+      />
 
-    <label for="drm">DRM</label>
-    <select v-model="drm" class="u-full-width" id="drm">
-      <option value="none">None</option>
-      <option value="widevine">Widevine</option>
-      <option value="playready">PlayReady</option>
-    </select>
+      <label for="drm">DRM</label>
+      <select v-model="drm" class="u-full-width" id="drm">
+        <option value="none">None</option>
+        <option value="widevine">Widevine</option>
+        <option value="playready">PlayReady</option>
+      </select>
 
-    <button v-on:click="connect" class="button-primary">Connect</button>
-    <button v-on:click="loadMedia">Load Media</button>
-    <button v-on:click="play">Play</button>
-    <button v-on:click="pause">Pause</button>
-    <button v-on:click="testMessage">Test Message</button>
-     </div>
+      <button v-on:click="connect" class="button-primary">Connect</button>
+      <button v-on:click="loadMedia">Load Media</button>
+      <button v-on:click="play">Play</button>
+      <button v-on:click="pause">Pause</button>
+      <button v-on:click="testMessage">Test Message</button>
+
+      <label for="checkbox">
+        <input type="checkbox" id="checkbox" v-model="debugEnabled" @change="onDebugChange($event)">
+        <span>Debug Panel</span>
+      </label>
+    </div>
   </div>
 </template>
 
@@ -50,12 +55,28 @@ export default {
       licenseUrl: "https://widevine-proxy.appspot.com/proxy",
       drm: "widevine",
       loaded: false,
+      debugEnabled: true,
     }
   },
   mounted() {
+    this.setQueryParams();
     this.init();
   },
   methods: {
+    setQueryParams() {
+      // Check if query params are set.
+      if (this.$route.query.url) {
+        this.mediaUrl = this.$route.query.url.toLowerCase();
+      }
+
+      if (this.$route.query.licenseUrl) {
+        this.licenseUrl = this.$route.query.licenseUrl.toLowerCase();
+      }
+
+      if (this.$route.query.drm) {
+        this.drm = this.$route.query.drm.toLowerCase();
+      }
+    },
     init() {
       window['__onGCastApiAvailable'] = (isAvailable) => {
           if (isAvailable) {
@@ -132,7 +153,13 @@ export default {
       console.log('[mediacast:sendMessage] - ' + message);
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
       castSession.sendMessage(namespace, { message: message });
-    }
+    },
+
+    onDebugChange(event) {
+      console.log('[mediacast:setDebugPanel] - ' + this.debugEnabled);
+      const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
+      castSession.sendMessage(namespace, { action: 'setDebugPanel', message: this.debugEnabled });
+    },
   }
 }
 </script>
