@@ -49,6 +49,7 @@ class Player extends Component {
   }
 
   loadMedia = () => {
+
     const { mediaUrl, licenseUrl, drm } = this.state;
 
     const contentType = 'application/dash+xml';
