@@ -66,11 +66,11 @@ export default {
     setQueryParams() {
       // Check if query params are set.
       if (this.$route.query.url) {
-        this.mediaUrl = this.$route.query.url.toLowerCase();
+        this.mediaUrl = this.$route.query.url;
       }
 
       if (this.$route.query.licenseUrl) {
-        this.licenseUrl = this.$route.query.licenseUrl.toLowerCase();
+        this.licenseUrl = this.$route.query.licenseUrl;
       }
 
       if (this.$route.query.drm) {
