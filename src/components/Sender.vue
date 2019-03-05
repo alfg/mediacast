@@ -1,5 +1,6 @@
 <template>
   <div class="sender container">
+    <img class="logo" src="@/assets/clapper.png" />
     <h1>MediaCast - Sender</h1>
 
     <div class="controls">
@@ -165,6 +166,10 @@ export default {
 </script>
 
 <style scoped>
+.logo {
+  width: 48px;
+}
+
 .controls {
   text-align: left;
 }
