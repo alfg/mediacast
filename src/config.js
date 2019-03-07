@@ -1,6 +1,6 @@
 const config = {
   namespace: 'urn:x-cast:com.google.cast.mediacast',
-  applicationId: 'B24212A8'
+  applicationId: 'A55EBA47'
 }
 
 export default config;
