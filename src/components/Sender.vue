@@ -25,16 +25,32 @@
         <option value="playready">PlayReady</option>
       </select>
 
-      <button v-on:click="connect" class="button-primary">Connect</button>
-      <button v-on:click="loadMedia">Load Media</button>
-      <button v-on:click="play">Play</button>
-      <button v-on:click="pause">Pause</button>
-      <button v-on:click="testMessage">Test Message</button>
+      <div class="control-buttons">
+        <google-cast-launcher class="cast-button"></google-cast-launcher>
+        <button v-on:click="connect" class="button-primary">Connect</button>
+        <button v-on:click="loadMedia">Load Media</button>
+        <button v-on:click="play">Play</button>
+        <button v-on:click="pause">Pause</button>
+        <button v-on:click="testMessage">Test Message</button>
+      </div>
 
       <label for="checkbox">
         <input type="checkbox" id="checkbox" v-model="debugEnabled" @change="onDebugChange($event)">
         <span>Debug Panel</span>
       </label>
+
+      <div class="player-controls">
+          <button class="material-icons">play_arrow</button>
+          <input class="seekBar" type="range" step="any" min="0" max="1" value="0">
+          <button class="rewindButton material-icons">fast_rewind</button>
+          <div class="currentTime">0:00</div>
+          <button class="fastForwardButton material-icons">fast_forward</button>
+          <button class="muteButton material-icons">volume_up</button>
+          <input class="volumeBar" type="range" step="any" min="0" max="1" value="0" style="background: linear-gradient(to right, rgb(204, 204, 204) 67.2414%, rgb(0, 0, 0) 67.2414%, rgb(0, 0, 0) 100%);">
+          <!-- <button class="castButton material-icons" style="display: inherit;">cast</button>
+          <button class="captionButton material-icons" style="color: rgba(255, 255, 255, 0.3);">closed_caption</button>
+          <button class="fullscreenButton material-icons">fullscreen</button> -->
+      </div>
     </div>
   </div>
 </template>
@@ -43,6 +59,7 @@
 import config from '../config';
 import '@/assets/normalize.css';
 import '@/assets/skeleton.css';
+import '@/assets/player-controls.css';
 
 const { namespace, applicationId } = config;
 
@@ -57,6 +74,8 @@ export default {
       drm: "widevine",
       loaded: false,
       debugEnabled: true,
+      duration: 0,
+      currentTime: 0,
     }
   },
   mounted() {
@@ -111,12 +130,58 @@ export default {
       mediaInfo.customData = { licenseUrl, drm };
       const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
 
+      this.setPlayerEvents();
+
       this.sendMessage('trying to load mediaUrl: ' + mediaUrl);
       castSession.loadMedia(request).then(() => {
         console.log('[mediacast] - Load succeeded');
       }, (err) => {
         console.log('[mediacast] - Error:' + err);
       });
+    },
+
+    setPlayerEvents() {
+      const player = new window.cast.framework.RemotePlayer();
+      const playerController = new window.cast.framework.RemotePlayerController(player);
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.IS_MEDIA_LOADED_CHANGED,
+        (event) => {
+          console.log(event);
+        }
+      );
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.CURRENT_TIME_CHANGED,
+        this.onCurrentTimeChanged,
+      );
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.DURATION_CHANGED,
+        (event) => {
+          console.log(event);
+        }
+      );
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.MEDIA_INFO_CHANGED,
+        this.onMediaInfoChanged,
+      );
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.PLAYER_STATE_CHANGED,
+        (event) => {
+          console.log(event);
+        }
+      );
+
+      // For debugging.
+      // playerController.addEventListener(
+      //   cast.framework.RemotePlayerEventType.ANY_CHANGE,
+      //   (event) => {
+      //     console.log(event);
+      //   }
+      // )
     },
 
     play() {
@@ -159,7 +224,17 @@ export default {
     onDebugChange(event) {
       console.log('[mediacast:setDebugPanel] - ' + this.debugEnabled);
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
-      castSession.sendMessage(namespace, { action: 'setDebugPanel', message: this.debugEnabled });
+      // castSession.sendMessage(namespace, { action: 'setDebugPanel', message: this.debugEnabled });
+    },
+
+    onMediaInfoChanged(event) {
+      console.log('[mediacast:onMediaInfoChanged] - ', event);
+      this.duration = event.value.duration;
+    },
+
+    onCurrentTimeChanged(event) {
+      console.log('[mediacast:onCurrentTimeChanged] - ', event);
+      this.currentTime = event.value;
     },
   }
 }
@@ -176,6 +251,21 @@ export default {
 
 .controls button {
   margin: 0 2px;
+}
+
+.control-buttons {
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.cast-button {
+  float: left;
+  width: 40px;
+  height: 40px;
+  opacity: 0.7;
+  border: none;
+  outline: none;
+  margin-right: 5px;
 }
 </style>
 
