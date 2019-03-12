@@ -25,24 +25,48 @@
         <option value="playready">PlayReady</option>
       </select>
 
-      <button v-on:click="connect" class="button-primary">Connect</button>
-      <button v-on:click="loadMedia">Load Media</button>
-      <button v-on:click="play">Play</button>
-      <button v-on:click="pause">Pause</button>
-      <button v-on:click="testMessage">Test Message</button>
+      <div class="control-buttons">
+        <button v-on:click="connect" class="button active" v-if="connected">Connected</button>
+        <button v-on:click="connect" class="button-primary" v-else>Connect</button>
+        <button v-on:click="loadMedia">Load Media</button>
+        <button v-on:click="testMessage">Test Message</button>
+        <label class="debug-toggle" for="checkbox">
+          <input type="checkbox" id="checkbox" v-model="debugEnabled" @change="onDebugChange($event)">
+          <span>Debug Panel</span>
+        </label>
+      </div>
 
-      <label for="checkbox">
-        <input type="checkbox" id="checkbox" v-model="debugEnabled" @change="onDebugChange($event)">
-        <span>Debug Panel</span>
-      </label>
+
+      <div class="player-controls" v-if="connected">
+          <button class="material-icons" v-on:click="pause" v-if="playing">pause_arrow</button>
+          <button class="material-icons" v-on:click="play" v-else>play_arrow</button>
+          <input class="seekBar" type="range" step="any" min="0" v-bind:max="duration" v-bind:value="currentTime" @change="onSeekChange">
+          <button class="rewindButton material-icons">fast_rewind</button>
+          <div class="currentTime">{{timeString}}</div>
+          <button class="fastForwardButton material-icons">fast_forward</button>
+          <button class="muteButton material-icons" v-on:click="setMute" v-if="muted">volume_mute</button>
+          <button class="muteButton material-icons" v-on:click="setMute" v-else>volume_up</button>
+          <input
+            class="volumeBar"
+            type="range"
+            step="any"
+            min="0"
+            max="1"
+            v-bind:value="volume"
+            v-bind:style="{ background: 'linear-gradient(to right, rgb(204, 204, 204) ' + volume * 100 + '%, rgb(0, 0, 0) ' + volume * 100 + '%, rgb(0, 0, 0) 100%)' }"
+            @change="onVolumeChange"
+          />
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import config from '../config';
+import utils from '../lib/utils';
 import '@/assets/normalize.css';
 import '@/assets/skeleton.css';
+import '@/assets/player-controls.css';
 
 const { namespace, applicationId } = config;
 
@@ -55,8 +79,21 @@ export default {
       mediaUrl: 'https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-widevine.ism/.mpd',
       licenseUrl: "https://widevine-proxy.appspot.com/proxy",
       drm: "widevine",
+      connected: false,
       loaded: false,
       debugEnabled: true,
+      playing: false,
+      seeking: false,
+      duration: 0,
+      currentTime: 0,
+      volume: 0.70,
+      savedVolume: 0.70,
+      muted: false,
+    }
+  },
+  computed: {
+    timeString: function() {
+      return utils.buildTimeString(this.currentTime);
     }
   },
   mounted() {
@@ -94,6 +131,7 @@ export default {
           receiverApplicationId: applicationId,
           autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
       });
+      this.setPlayerEvents();
     },
 
     connect() {
@@ -111,12 +149,61 @@ export default {
       mediaInfo.customData = { licenseUrl, drm };
       const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
 
+
       this.sendMessage('trying to load mediaUrl: ' + mediaUrl);
       castSession.loadMedia(request).then(() => {
         console.log('[mediacast] - Load succeeded');
+        // this.setPlayerEvents();
       }, (err) => {
         console.log('[mediacast] - Error:' + err);
       });
+    },
+
+    setPlayerEvents() {
+      const player = new window.cast.framework.RemotePlayer();
+      const playerController = new window.cast.framework.RemotePlayerController(player);
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.IS_CONNECTED_CHANGED,
+        this.onIsConnectedChanged,
+      );
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.IS_MEDIA_LOADED_CHANGED,
+        (event) => {
+          console.log(event);
+        }
+      );
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.CURRENT_TIME_CHANGED,
+        this.onCurrentTimeChanged,
+      );
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.DURATION_CHANGED,
+        (event) => {
+          console.log(event);
+        }
+      );
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.MEDIA_INFO_CHANGED,
+        this.onMediaInfoChanged,
+      );
+
+      playerController.addEventListener(
+        cast.framework.RemotePlayerEventType.PLAYER_STATE_CHANGED,
+        this.onPlayerStateChanged,
+      );
+
+      // For debugging.
+      // playerController.addEventListener(
+      //   cast.framework.RemotePlayerEventType.ANY_CHANGE,
+      //   (event) => {
+      //     console.log(event);
+      //   }
+      // )
     },
 
     play() {
@@ -125,11 +212,17 @@ export default {
 
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
       const media = castSession.getMediaSession();
+
+      if (!media) {
+        this.loadMedia();
+        return;
+      }
+
       castSession.sendMessage('urn:x-cast:com.google.cast.media', {
         type: 'PLAY',
         requestId: 1,
-        mediaSessionId: media.mediaSessionId
-      })
+        mediaSessionId: media.mediaSessionId,
+      });
     },
 
     pause() {
@@ -141,8 +234,51 @@ export default {
       castSession.sendMessage('urn:x-cast:com.google.cast.media', {
         type: 'PAUSE',
         requestId: 1,
-        mediaSessionId: media.mediaSessionId
-      })
+        mediaSessionId: media.mediaSessionId,
+      });
+    },
+
+    seekTo(value) {
+      console.log('[mediacast] - seekTo: ', value);
+      this.sendMessage("seekTo to: " + value);
+
+      this.seeking = true;
+
+      const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
+      const media = castSession.getMediaSession();
+      castSession.sendMessage('urn:x-cast:com.google.cast.media', {
+        type: 'SEEK',
+        requestId: 1,
+        mediaSessionId: media.mediaSessionId,
+        currentTime: value,
+      });
+      this.play();
+    },
+
+    setVolume(value) {
+      console.log('[mediacast] - setVolume: ', value);
+      this.sendMessage("setVolume to: " + value);
+      const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
+      castSession.setVolume(parseFloat(value));
+      this.volume = value;
+
+      if (this.volume > 0) {
+        this.muted = false;
+      }
+    },
+
+    setMute() {
+      console.log('[mediacast] - setMute: ', !this.muted);
+      this.sendMessage("setMute to: " + !this.muted);
+      this.muted = !this.muted;
+      if (this.muted) {
+        this.savedVolume = this.volume;
+        this.volume = 0;
+      } else {
+        this.volume = this.savedVolume;
+      }
+      const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
+      castSession.setMute(this.muted);
     },
 
     testMessage() {
@@ -161,6 +297,47 @@ export default {
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
       castSession.sendMessage(namespace, { action: 'setDebugPanel', message: this.debugEnabled });
     },
+
+    onSeekChange(event) {
+      console.log('[mediacast:onSeekChange] - ', event.target.value);
+      this.seeking = true;
+      if (event.target && event.target.value) {
+        this.seekTo(event.target.value);
+      }
+    },
+
+    onVolumeChange(event) {
+      console.log('[mediacast:onVolumeChange] - ', event.target.value);
+      this.volume = event.target.value;
+      if (event.target && event.target.value) {
+        this.setVolume(event.target.value);
+      }
+    },
+
+    onMediaInfoChanged(event) {
+      console.log('[mediacast:onMediaInfoChanged] - ', event);
+      this.duration = event.value && event.value.duration;
+    },
+
+    onCurrentTimeChanged(event) {
+      console.log('[mediacast:onCurrentTimeChanged] - ', event);
+      if (!this.seeking) {
+        this.currentTime = event.value;
+      }
+    },
+
+    onIsConnectedChanged(event) {
+      console.log('[mediacast:onIsConnectedChanged] - ', event);
+      this.connected = event.value;
+    },
+
+    onPlayerStateChanged(event) {
+      console.log('[mediacast:onPlayerStateChanged] - ', event);
+      this.playing = event.value === 'PLAYING' || event.value === 'BUFFERING';
+      if (event.value === 'PLAYING') {
+        this.seeking = false;
+      }
+    },
   }
 }
 </script>
@@ -176,6 +353,32 @@ export default {
 
 .controls button {
   margin: 0 2px;
+}
+
+.control-buttons {
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.active {
+  background-color: #005a00;
+  border-color: #005a00;
+  color: #FFF;
+}
+
+.debug-toggle {
+  display: inline;
+  margin: 0 10px;
+}
+
+.cast-button {
+  float: left;
+  width: 40px;
+  height: 40px;
+  opacity: 0.7;
+  border: none;
+  outline: none;
+  margin-right: 5px;
 }
 </style>
 
