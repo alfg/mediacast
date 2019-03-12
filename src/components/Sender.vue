@@ -44,8 +44,18 @@
           <button class="rewindButton material-icons">fast_rewind</button>
           <div class="currentTime">{{timeString}}</div>
           <button class="fastForwardButton material-icons">fast_forward</button>
-          <button class="muteButton material-icons">volume_up</button>
-          <input class="volumeBar" type="range" step="any" min="0" max="1" value="0" style="background: linear-gradient(to right, rgb(204, 204, 204) 67.2414%, rgb(0, 0, 0) 67.2414%, rgb(0, 0, 0) 100%);">
+          <button class="muteButton material-icons" v-on:click="setMute" v-if="muted">volume_mute</button>
+          <button class="muteButton material-icons" v-on:click="setMute" v-else>volume_up</button>
+          <input
+            class="volumeBar"
+            type="range"
+            step="any"
+            min="0"
+            max="1"
+            v-bind:value="volume"
+            v-bind:style="{ background: 'linear-gradient(to right, rgb(204, 204, 204) ' + volume * 100 + '%, rgb(0, 0, 0) ' + volume * 100 + '%, rgb(0, 0, 0) 100%)' }"
+            @change="onVolumeChange"
+          />
       </div>
     </div>
   </div>
@@ -76,6 +86,9 @@ export default {
       seeking: false,
       duration: 0,
       currentTime: 0,
+      volume: 0.70,
+      savedVolume: 0.70,
+      muted: false,
     }
   },
   computed: {
@@ -245,15 +258,27 @@ export default {
     setVolume(value) {
       console.log('[mediacast] - setVolume: ', value);
       this.sendMessage("setVolume to: " + value);
-
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
-      const media = castSession.getMediaSession();
-      castSession.sendMessage('urn:x-cast:com.google.cast.media', {
-        type: 'VOLUME',
-        requestId: 1,
-        mediaSessionId: media.mediaSessionId,
-        volume: value,
-      });
+      castSession.setVolume(parseFloat(value));
+      this.volume = value;
+
+      if (this.volume > 0) {
+        this.muted = false;
+      }
+    },
+
+    setMute() {
+      console.log('[mediacast] - setMute: ', !this.muted);
+      this.sendMessage("setMute to: " + !this.muted);
+      this.muted = !this.muted;
+      if (this.muted) {
+        this.savedVolume = this.volume;
+        this.volume = 0;
+      } else {
+        this.volume = this.savedVolume;
+      }
+      const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
+      castSession.setMute(this.muted);
     },
 
     testMessage() {
@@ -278,6 +303,14 @@ export default {
       this.seeking = true;
       if (event.target && event.target.value) {
         this.seekTo(event.target.value);
+      }
+    },
+
+    onVolumeChange(event) {
+      console.log('[mediacast:onVolumeChange] - ', event.target.value);
+      this.volume = event.target.value;
+      if (event.target && event.target.value) {
+        this.setVolume(event.target.value);
       }
     },
 
