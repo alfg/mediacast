@@ -2,7 +2,7 @@
   <div class="receiver">
     <div class="debug-panel" v-if="debugEnabled">
       <div class="debug-stats">
-        bitrate: {{ stats.bitrate }}
+        bandwidth: {{ stats.bitrate }}
       </div>
 
       <div class="debug-log" ref="debugLog">
@@ -42,6 +42,9 @@ export default {
       this.log('[mediacast:init] - Initializing.');
       const context = cast.framework.CastReceiverContext.getInstance();
       const player = context.getPlayerManager();
+
+      // TODO: Set debug level from sender.
+      cast.framework.CastReceiverContext.getInstance().setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
 
       // Set DRM contexts.
       this.setDrms();
@@ -95,9 +98,17 @@ export default {
       //   console.log(event);
       // });
 
+      player.addEventListener(cast.framework.events.EventType.PLAYER_LOAD_COMPLETE, () => {
+        this.log('[mediacast:events:PLAYER_LOAD_COMPLETE');
+
+        console.log(player.getStats());
+        console.log(player.getMediaInformation());
+      });
+
       player.addEventListener(cast.framework.events.EventType.BITRATE_CHANGED, (event) => {
         this.log('[mediacast:events:BITRATE_CHANGED - ' + event.totalBitrate);
         this.stats.bitrate = event.totalBitrate;
+        console.log(player.getStats());
       });
     },
     
@@ -121,7 +132,7 @@ export default {
 
     onCustomMessage(event) {
       console.log('Message [' + event.senderId + ']: ' + JSON.stringify(event.data));
-      this.log('[mediacast:onCustomMessage] - ' + event.data.message);
+      this.log('[mediacast:onCustomMessage] - ' + JSON.stringify(event.data));
 
       // Check if action is received from sender.
       if (event.data.action) {
