@@ -1,12 +1,23 @@
 # mediacast
 
-## Project setup
+<p align=center><img src="src/assets/clapper.png"></img></p>
+
+> Google Cast - Chrome Sender & CAF Player for testing Media Playback
+
+https://alfg.github.io/mediacast/
+
+** Works on Google Chrome only!
+
+## Features
+* MP4
+* Adaptive Streaming - DASH / SmoothStreaming / HLS
+* DRM - Widevine / PlayReady
+
+## Install
+
+### Development
 ```
 npm install
-```
-
-### Compiles and hot-reloads for development
-```
 npm run serve
 ```
 
@@ -15,15 +26,10 @@ npm run serve
 npm run build
 ```
 
-### Run your tests
+### Deploy
 ```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
+npm run deploy
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## License
+MIT
