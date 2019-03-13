@@ -417,7 +417,7 @@ export default {
   border: 1px solid #aaa;
   color: #000;
   font-family: monospace;
-  height: 200px;
+  height: 300px;
   margin-top: 10px;
   overflow-x: hidden;
   overflow-y: scroll;
