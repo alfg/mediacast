@@ -38,24 +38,32 @@
 
 
       <div class="player-controls" v-if="connected">
-          <button class="material-icons" v-on:click="pause" v-if="playing">pause_arrow</button>
-          <button class="material-icons" v-on:click="play" v-else>play_arrow</button>
-          <input class="seekBar" type="range" step="any" min="0" v-bind:max="duration" v-bind:value="currentTime" @change="onSeekChange">
-          <button class="rewindButton material-icons">fast_rewind</button>
-          <div class="currentTime">{{timeString}}</div>
-          <button class="fastForwardButton material-icons">fast_forward</button>
-          <button class="muteButton material-icons" v-on:click="setMute" v-if="muted">volume_mute</button>
-          <button class="muteButton material-icons" v-on:click="setMute" v-else>volume_up</button>
-          <input
-            class="volumeBar"
-            type="range"
-            step="any"
-            min="0"
-            max="1"
-            v-bind:value="volume"
-            v-bind:style="{ background: 'linear-gradient(to right, rgb(204, 204, 204) ' + volume * 100 + '%, rgb(0, 0, 0) ' + volume * 100 + '%, rgb(0, 0, 0) 100%)' }"
-            @change="onVolumeChange"
-          />
+        <button class="material-icons" v-on:click="pause" v-if="playing">pause_arrow</button>
+        <button class="material-icons" v-on:click="play" v-else>play_arrow</button>
+        <input class="seekBar" type="range" step="any" min="0" v-bind:max="duration" v-bind:value="currentTime" @change="onSeekChange">
+        <button class="rewindButton material-icons">fast_rewind</button>
+        <div class="currentTime">{{timeString}}</div>
+        <button class="fastForwardButton material-icons">fast_forward</button>
+        <button class="muteButton material-icons" v-on:click="setMute" v-if="muted">volume_mute</button>
+        <button class="muteButton material-icons" v-on:click="setMute" v-else>volume_up</button>
+        <input
+          class="volumeBar"
+          type="range"
+          step="any"
+          min="0"
+          max="1"
+          v-bind:value="volume"
+          v-bind:style="{ background: 'linear-gradient(to right, rgb(204, 204, 204) ' + volume * 100 + '%, rgb(0, 0, 0) ' + volume * 100 + '%, rgb(0, 0, 0) 100%)' }"
+          @change="onVolumeChange"
+        />
+      </div>
+
+      <div class="log" ref="log">
+        <div v-for="l in debugLog" :key="l.id">
+          <div class="log-item">
+            <span>{{ l }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -68,7 +76,7 @@ import '@/assets/normalize.css';
 import '@/assets/skeleton.css';
 import '@/assets/player-controls.css';
 
-const { namespace, applicationId } = config;
+const { namespace, applicationId, defaultUrl, defaultLicenseUrl, defaultDrm } = config;
 
 export default {
   name: 'sender',
@@ -76,9 +84,9 @@ export default {
   },
   data() {
     return {
-      mediaUrl: 'https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-widevine.ism/.mpd',
-      licenseUrl: "https://widevine-proxy.appspot.com/proxy",
-      drm: "widevine",
+      mediaUrl: defaultUrl,
+      licenseUrl: defaultLicenseUrl,
+      drm: defaultDrm,
       connected: false,
       loaded: false,
       debugEnabled: true,
@@ -89,6 +97,7 @@ export default {
       volume: 0.70,
       savedVolume: 0.70,
       muted: false,
+      debugLog: [],
     }
   },
   computed: {
@@ -126,7 +135,8 @@ export default {
     },
 
     initializeCastApi() {
-      console.log('[mediacast] - Initializing Cast API: ', applicationId);
+      this.log('[mediacast] - Initializing Cast API: ', applicationId);
+      window.cast.framework.setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
       window.cast.framework.CastContext.getInstance().setOptions({
           receiverApplicationId: applicationId,
           autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
@@ -152,10 +162,10 @@ export default {
 
       this.sendMessage('trying to load mediaUrl: ' + mediaUrl);
       castSession.loadMedia(request).then(() => {
-        console.log('[mediacast] - Load succeeded');
+        this.log('[mediacast] - Load succeeded');
         // this.setPlayerEvents();
       }, (err) => {
-        console.log('[mediacast] - Error:' + err);
+        this.log('[mediacast] - Error:' + err);
       });
     },
 
@@ -171,7 +181,7 @@ export default {
       playerController.addEventListener(
         cast.framework.RemotePlayerEventType.IS_MEDIA_LOADED_CHANGED,
         (event) => {
-          console.log(event);
+          this.log('[mediacast:onIsMediaLoadedChanged] - ', JSON.stringify(event));
         }
       );
 
@@ -183,7 +193,7 @@ export default {
       playerController.addEventListener(
         cast.framework.RemotePlayerEventType.DURATION_CHANGED,
         (event) => {
-          console.log(event);
+          this.log('[mediacast:onDurationChanged] - ', JSON.stringify(event));
         }
       );
 
@@ -201,13 +211,13 @@ export default {
       // playerController.addEventListener(
       //   cast.framework.RemotePlayerEventType.ANY_CHANGE,
       //   (event) => {
-      //     console.log(event);
+      //     this.log(event);
       //   }
       // )
     },
 
     play() {
-      console.log('[mediacast] - play');
+      this.log('[mediacast:play]');
       this.sendMessage("play");
 
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
@@ -226,7 +236,7 @@ export default {
     },
 
     pause() {
-      console.log('[mediacast] - pause');
+      this.log('[mediacast:pause]');
       this.sendMessage("pause");
 
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
@@ -239,7 +249,7 @@ export default {
     },
 
     seekTo(value) {
-      console.log('[mediacast] - seekTo: ', value);
+      this.log('[mediacast:seekTo] - ', value);
       this.sendMessage("seekTo to: " + value);
 
       this.seeking = true;
@@ -256,7 +266,7 @@ export default {
     },
 
     setVolume(value) {
-      console.log('[mediacast] - setVolume: ', value);
+      this.log('[mediacast:setVolume] - ', value);
       this.sendMessage("setVolume to: " + value);
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
       castSession.setVolume(parseFloat(value));
@@ -268,7 +278,7 @@ export default {
     },
 
     setMute() {
-      console.log('[mediacast] - setMute: ', !this.muted);
+      this.log('[mediacast:setMute] - ', !this.muted);
       this.sendMessage("setMute to: " + !this.muted);
       this.muted = !this.muted;
       if (this.muted) {
@@ -282,24 +292,23 @@ export default {
     },
 
     testMessage() {
-      console.log('[mediacast] - sending test message');
       this.sendMessage("Test");
     },
 
     sendMessage(message) {
-      console.log('[mediacast:sendMessage] - ' + message);
+      this.log('[mediacast:sendMessage] - ', message);
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
       castSession.sendMessage(namespace, { message: message });
     },
 
     onDebugChange(event) {
-      console.log('[mediacast:setDebugPanel] - ' + this.debugEnabled);
+      this.log('[mediacast:setDebugPanel] - ', this.debugEnabled);
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
       castSession.sendMessage(namespace, { action: 'setDebugPanel', message: this.debugEnabled });
     },
 
     onSeekChange(event) {
-      console.log('[mediacast:onSeekChange] - ', event.target.value);
+      this.log('[mediacast:onSeekChange] - ', event.target.value);
       this.seeking = true;
       if (event.target && event.target.value) {
         this.seekTo(event.target.value);
@@ -307,7 +316,7 @@ export default {
     },
 
     onVolumeChange(event) {
-      console.log('[mediacast:onVolumeChange] - ', event.target.value);
+      this.log('[mediacast:onVolumeChange] - ', event.target.value);
       this.volume = event.target.value;
       if (event.target && event.target.value) {
         this.setVolume(event.target.value);
@@ -315,28 +324,36 @@ export default {
     },
 
     onMediaInfoChanged(event) {
-      console.log('[mediacast:onMediaInfoChanged] - ', event);
+      this.log('[mediacast:onMediaInfoChanged] - ', JSON.stringify(event));
       this.duration = event.value && event.value.duration;
     },
 
     onCurrentTimeChanged(event) {
-      console.log('[mediacast:onCurrentTimeChanged] - ', event);
+      this.log('[mediacast:onCurrentTimeChanged] - ', JSON.stringify(event));
       if (!this.seeking) {
         this.currentTime = event.value;
       }
     },
 
     onIsConnectedChanged(event) {
-      console.log('[mediacast:onIsConnectedChanged] - ', event);
+      this.log('[mediacast:onIsConnectedChanged] - ', JSON.stringify(event));
       this.connected = event.value;
     },
 
     onPlayerStateChanged(event) {
-      console.log('[mediacast:onPlayerStateChanged] - ', event);
+      this.log('[mediacast:onPlayerStateChanged] - ', JSON.stringify(event));
       this.playing = event.value === 'PLAYING' || event.value === 'BUFFERING';
       if (event.value === 'PLAYING') {
         this.seeking = false;
       }
+    },
+
+    log(...message) {
+      console.log(message.join(' '));
+      this.debugLog = this.debugLog.concat(message.join(' '));
+      setTimeout(() => {
+        this.$refs.log.scrollTop = this.$refs.log.scrollHeight;
+      }, 1);
     },
   }
 }
@@ -379,6 +396,32 @@ export default {
   border: none;
   outline: none;
   margin-right: 5px;
+}
+
+.log {
+  background-color: #f4f4f4;
+  border: 1px solid #aaa;
+  color: #000;
+  font-family: monospace;
+  height: 200px;
+  margin-top: 10px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding: 5px;
+  width: 100%;
+}
+
+.log-item {
+  border-bottom: 1px solid #ddd;
+  line-height: 1.4em;
+  margin: 0;
+  padding: 0 0.5em;
+  width: 100%;
+}
+
+.log-item span {
+  padding-right: 0.5em;
+  white-space: pre-wrap;
 }
 </style>
 
