@@ -28,9 +28,9 @@
       <div class="control-buttons">
         <button v-on:click="connect" class="button active" v-if="connected">Connected</button>
         <button v-on:click="connect" class="button-primary" v-else>Connect</button>
-        <button v-on:click="loadMedia">Load Media</button>
-        <button v-on:click="testMessage">Test Message</button>
-        <label class="debug-toggle" for="checkbox">
+        <button v-on:click="loadMedia" v-if="connected">Load Media</button>
+        <button v-on:click="testMessage" v-if="connected">Test Message</button>
+        <label class="debug-toggle" for="checkbox" v-if="connected">
           <input type="checkbox" id="checkbox" v-model="debugEnabled" @change="onDebugChange($event)">
           <span>Debug Panel</span>
         </label>
