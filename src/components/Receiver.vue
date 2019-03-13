@@ -1,11 +1,13 @@
 <template>
   <div class="receiver">
-    <div class="debug-panel" v-if="debugEnabled">
+    <div class="debug-panel" v-bind:class="{ active: debugEnabled }">
       <div class="debug-stats">
-        bandwidth: {{ stats.bitrate }}
+        <span>bandwidth: {{ stats.bitrate }}</span>
+        <span>state: {{ stats.state }}</span>
+        <span>current time: {{ stats.currentMediaTime }}</span>
       </div>
 
-      <div class="debug-log" ref="debugLog">
+      <div class="debug-log" ref="log">
         <div v-for="m in debugLog"
           :key="m.id"
           >{{ m }}</div>
@@ -30,7 +32,9 @@ export default {
       debugEnabled: true,
       debugLog: [],
       stats: {
-        bitrate: 0
+        bitrate: 0,
+        state: 'INIT',
+        currentMediaTime: 0,
       },
     }
   },
@@ -51,9 +55,6 @@ export default {
 
       // Set player events and config.
       this.setPlayerEvents(player);
-
-      // Set debug log.
-      this.setDebugLog();
 
       // Listen for custom messages.
       context.addCustomMessageListener(namespace, this.onCustomMessage);
@@ -94,13 +95,8 @@ export default {
         return loadRequestData;
       });
 
-      // player.addEventListener(cast.framework.events.EventType.ALL, (event) => {
-      //   console.log(event);
-      // });
-
       player.addEventListener(cast.framework.events.EventType.PLAYER_LOAD_COMPLETE, () => {
         this.log('[mediacast:events:PLAYER_LOAD_COMPLETE');
-
         console.log(player.getStats());
         console.log(player.getMediaInformation());
       });
@@ -110,6 +106,38 @@ export default {
         this.stats.bitrate = event.totalBitrate;
         console.log(player.getStats());
       });
+
+      player.addEventListener(cast.framework.events.EventType.PLAYING, (event) => {
+        this.log('[mediacast:events:PLAYING - ', JSON.stringify(event));
+      });
+
+      player.addEventListener(cast.framework.events.EventType.PAUSE, (event) => {
+        this.log('[mediacast:events:PAUSE - ', JSON.stringify(event));
+      });
+
+      player.addEventListener(cast.framework.events.EventType.SEEKING, (event) => {
+        this.log('[mediacast:events:SEEKING - ', JSON.stringify(event));
+      });
+
+      player.addEventListener(cast.framework.events.EventType.BUFFERING, (event) => {
+        this.log('[mediacast:events:BUFFERING - ', JSON.stringify(event));
+      });
+
+      player.addEventListener(cast.framework.events.EventType.TIME_UPDATE, (event) => {
+        // this.log('[mediacast:events:TIME_UPDATE - ', JSON.stringify(event));
+        this.stats.currentMediaTime = event.currentMediaTime;
+      });
+
+      player.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, (event) => {
+        this.log('[mediacast:events:MEDIA_STATUS - ', JSON.stringify(event));
+        this.stats.state = event.mediaStatus.playerState;
+      });
+
+      // For debugging.
+      // player.addEventListener(cast.framework.events.EventType.ALL, (event) => {
+      //   console.log(event);
+      // });
+
     },
     
     setDrms() {
@@ -117,17 +145,6 @@ export default {
         widevine: cast.framework.ContentProtection.WIDEVINE,
         playready: cast.framework.ContentProtection.PLAYREADY,
       }
-    },
-
-    setDebugLog() {
-      // Keep debug log scrolled to the bottom;
-      const w = this.$refs.debugLog;
-      setInterval(() => {
-        const scrolled = w.scrollHeight - w.clientHeight <= w.scrollTop + 1;
-        if (!scrolled) {
-          w.scrollTop = w.scrollHeight - w.clientHeight;
-        }
-      }, 1000);
     },
 
     onCustomMessage(event) {
@@ -151,9 +168,12 @@ export default {
       // this._messageBus.send(event.senderId, event.data);
     },
 
-    log(message) {
-      console.log(message);
-      this.debugLog = this.debugLog.concat(message);
+    log(...message) {
+      console.log(message.join(' '));
+      this.debugLog = this.debugLog.concat(message.join(' '));
+      setTimeout(() => {
+        this.$refs.log.scrollTop = this.$refs.log.scrollHeight;
+      }, 1);
     }
   }
 }
@@ -170,8 +190,9 @@ export default {
 }
 
 .debug-panel {
+  display: none;
   height: 100%;
-  width: 40%;
+  width: 50%;
   padding-left: 10px;
   padding-top: 10px;
   position: absolute;
@@ -180,10 +201,18 @@ export default {
   z-index: 1;
 }
 
+.debug-panel.active {
+  display: block;
+}
+
 .debug-stats {
     text-align: left;
     width: 100%;
     height: 20%;
+}
+
+.debug-stats span {
+  display: block;
 }
 
 .debug-log {
@@ -191,6 +220,7 @@ export default {
     text-align: left;
     width: 100%;
     height: 75%;
+    word-wrap: break-word;
 }
 
 </style>
