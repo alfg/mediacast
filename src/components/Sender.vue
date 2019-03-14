@@ -27,7 +27,8 @@
 
       <div class="control-buttons">
         <button v-on:click="connect" class="button active" v-if="connected">Connected</button>
-        <button v-on:click="connect" class="button-primary" v-else>Connect</button>
+        <button v-on:click="connect" class="button-primary" :disabled="!isChrome()" v-else>Connect</button>
+        <span v-if="!isChrome()">Google Chrome required!</span>
         <button v-on:click="loadMedia" v-if="connected">Load Media</button>
         <button v-on:click="stop" v-if="connected">Stop</button>
         <button v-on:click="testMessage" v-if="connected">Test Message</button>
@@ -315,7 +316,7 @@ export default {
       castSession.sendMessage(namespace, { message: message });
     },
 
-    onDebugChange(event) {
+    onDebugChange() {
       this.log('[mediacast:setDebugPanel] - ', this.debugEnabled);
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
       castSession.sendMessage(namespace, { action: 'setDebugPanel', message: this.debugEnabled });
@@ -362,6 +363,12 @@ export default {
       }
     },
 
+    isChrome() {
+      console.log('isChrome');
+      return /Chrome/.test(navigator.userAgent) &&
+        /Google Inc/.test(navigator.vendor);
+    },
+
     log(...message) {
       console.log(message.join(' '));
       this.debugLog = this.debugLog.concat(message.join(' '));
@@ -391,10 +398,21 @@ export default {
   margin-bottom: 10px;
 }
 
+.control-buttons span {
+  margin-left: 10px;
+}
+
 .active {
   background-color: #005a00;
   border-color: #005a00;
   color: #FFF;
+}
+
+button:disabled,
+button[disabled] {
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
 }
 
 .debug-toggle {
