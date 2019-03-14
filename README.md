@@ -31,5 +31,13 @@ npm run build
 npm run deploy
 ```
 
+### Docker
+```
+docker build -t mediacast .
+docker run -it -p 8080:80 --rm mediacast
+```
+
+* Load `http://localhost:8080/mediacast` in Google Chrome.
+
 ## License
 MIT
