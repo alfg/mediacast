@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import Sender from '@/components/Sender.vue'
+import Sender from '@/components/sender/Sender.vue'
 
 export default {
   name: 'home',

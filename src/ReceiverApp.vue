@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import Receiver from '@/components/Receiver.vue';
+import Receiver from '@/components/receiver/Receiver.vue';
 
 export default {
   name: 'receiver-app',

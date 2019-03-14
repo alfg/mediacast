@@ -60,20 +60,15 @@
         />
       </div>
 
-      <div class="log" ref="log">
-        <div v-for="l in debugLog" :key="l.id">
-          <div class="log-item">
-            <span>{{ l }}</span>
-          </div>
-        </div>
-      </div>
+      <Log v-bind:logs="debugLog" />
     </div>
   </div>
 </template>
 
 <script>
-import config from '../config';
-import utils from '../lib/utils';
+import config from '@/config';
+import utils from '@/lib/utils';
+import Log from '@/components/sender/Log.vue';
 import '@/assets/normalize.css';
 import '@/assets/skeleton.css';
 import '@/assets/player-controls.css';
@@ -83,6 +78,7 @@ const { namespace, applicationId, defaultUrl, defaultLicenseUrl, defaultDrm } = 
 export default {
   name: 'sender',
   components: {
+    Log,
   },
   data() {
     return {
@@ -368,10 +364,8 @@ export default {
 
     log(...message) {
       console.log(message.join(' '));
+      // debugLog gets updated and passed to <Log /> prop.
       this.debugLog = this.debugLog.concat(message.join(' '));
-      setTimeout(() => {
-        this.$refs.log.scrollTop = this.$refs.log.scrollHeight;
-      }, 1);
     },
   }
 }
@@ -425,32 +419,6 @@ button[disabled] {
   border: none;
   outline: none;
   margin-right: 5px;
-}
-
-.log {
-  background-color: #f4f4f4;
-  border: 1px solid #aaa;
-  color: #000;
-  font-family: monospace;
-  height: 300px;
-  margin-top: 10px;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  padding: 5px;
-  width: 100%;
-}
-
-.log-item {
-  border-bottom: 1px solid #ddd;
-  line-height: 1.4em;
-  margin: 0;
-  padding: 0 0.5em;
-  width: 100%;
-}
-
-.log-item span {
-  padding-right: 0.5em;
-  white-space: pre-wrap;
 }
 </style>
 
