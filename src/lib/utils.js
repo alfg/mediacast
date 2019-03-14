@@ -10,6 +10,11 @@ const utils = {
       text = h + ':' + text;
     }
     return text;
+  },
+
+  isChrome() {
+    return /Chrome/.test(navigator.userAgent) &&
+      /Google Inc/.test(navigator.vendor);
   }
 }
 

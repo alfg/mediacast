@@ -27,8 +27,8 @@
 
       <div class="control-buttons">
         <button v-on:click="connect" class="button active" v-if="connected">Connected</button>
-        <button v-on:click="connect" class="button-primary" :disabled="!isChrome()" v-else>Connect</button>
-        <span v-if="!isChrome()">Google Chrome required!</span>
+        <button v-on:click="connect" class="button-primary" :disabled="!isChrome" v-else>Connect</button>
+        <span v-if="!isChrome">Google Chrome required!</span>
         <button v-on:click="loadMedia" v-if="connected">Load Media</button>
         <button v-on:click="stop" v-if="connected">Stop</button>
         <button v-on:click="testMessage" v-if="connected">Test Message</button>
@@ -105,6 +105,9 @@ export default {
   computed: {
     timeString: function() {
       return utils.buildTimeString(this.currentTime);
+    },
+    isChrome: function() {
+      return utils.isChrome();
     }
   },
   mounted() {
@@ -361,11 +364,6 @@ export default {
       if (event.value === 'PLAYING') {
         this.seeking = false;
       }
-    },
-
-    isChrome() {
-      return /Chrome/.test(navigator.userAgent) &&
-        /Google Inc/.test(navigator.vendor);
     },
 
     log(...message) {
