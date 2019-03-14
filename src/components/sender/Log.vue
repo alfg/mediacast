@@ -19,7 +19,9 @@ export default {
   },
   methods: {
     updateLogPosition() {
-      this.$refs.log.scrollTop = this.$refs.log.scrollHeight;
+      setTimeout(() => {
+        this.$refs.log.scrollTop = this.$refs.log.scrollHeight;
+      }, 1);
     }
   }
 }
