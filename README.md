@@ -22,7 +22,7 @@ https://alfg.github.io/mediacast/
 ## Install
 
 ### Development
-Mediacast is build with [Vue.jS](https://vuejs.org) and the [Google Cast SDK](https://developers.google.com/cast/docs/developers).
+Mediacast is built with [Vue.jS](https://vuejs.org) and the [Google Cast SDK](https://developers.google.com/cast/docs/developers).
 
 * [CAF Receiver](https://developers.google.com/cast/docs/caf_receiver/)
 * [Chrome Sender](https://developers.google.com/cast/docs/chrome_sender/)
