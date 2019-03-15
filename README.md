@@ -19,14 +19,13 @@ https://alfg.github.io/mediacast/
 * Audio Track selection
 * Video Track selection (currently not supported by CAF Receiver API)
 
-## Install
-
-### Development
+## Development
 Mediacast is built with [Vue.js](https://vuejs.org) and the [Google Cast SDK](https://developers.google.com/cast/docs/developers).
 
 * [CAF Receiver](https://developers.google.com/cast/docs/caf_receiver/)
 * [Chrome Sender](https://developers.google.com/cast/docs/chrome_sender/)
 
+### Install
 ```
 npm install
 npm run serve
