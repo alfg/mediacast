@@ -1,16 +1,22 @@
 <template>
   <div class="sender-app">
-    <Sender />
+    <Header />
+    <Controls />
+    <Footer />
   </div>
 </template>
 
 <script>
-import Sender from '@/components/sender/Sender.vue';
+import Header from '@/components/sender/Header.vue';
+import Controls from '@/components/sender/Controls.vue';
+import Footer from '@/components/sender/Footer.vue';
 
 export default {
   name: 'sender-app',
   components: {
-    Sender,
+    Header,
+    Controls,
+    Footer,
   },
 }
 </script>

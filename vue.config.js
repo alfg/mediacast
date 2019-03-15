@@ -1,11 +1,11 @@
 module.exports = {
   pages: {
     index: {
-        entry: 'src/main.js',
+        entry: 'src/main-sender.js',
         template: 'public/index.html'
     },
     receiver: {
-        entry: 'src/receiver.js',
+        entry: 'src/main-receiver.js',
         template: 'public/receiver.html'
     }
   },

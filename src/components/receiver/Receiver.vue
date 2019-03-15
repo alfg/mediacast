@@ -1,31 +1,25 @@
 <template>
   <div class="receiver">
-    <div class="debug-panel" v-bind:class="{ active: debugEnabled }">
-      <div class="debug-stats">
-        <span>bandwidth: {{ stats.bitrate }}</span>
-        <span>state: {{ stats.state }}</span>
-        <span>current time: {{ stats.currentMediaTime }}</span>
-      </div>
-
-      <div class="debug-log" ref="log">
-        <div v-for="m in debugLog"
-          :key="m.id"
-          >{{ m }}</div>
-      </div>
-    </div>
-
+    <DebugPanel
+      v-bind:debugEnabled="debugEnabled"
+      v-bind:logs="debugLog"
+      v-bind:stats="stats"
+      />
     <cast-media-player></cast-media-player>
   </div>
 </template>
 
 <script>
 import config from '@/config';
+import DebugPanel from '@/components/receiver/DebugPanel.vue';
 
 const { namespace } = config;
 
 export default {
   name: 'receiver',
-  components: {},
+  components: {
+    DebugPanel,
+  },
   data() {
     return {
       drms: {},
@@ -171,9 +165,6 @@ export default {
     log(...message) {
       console.log(message.join(' '));
       this.debugLog = this.debugLog.concat(message.join(' '));
-      setTimeout(() => {
-        this.$refs.log.scrollTop = this.$refs.log.scrollHeight;
-      }, 1);
     }
   }
 }
@@ -181,48 +172,13 @@ export default {
 
 <style scoped>
 .video {
-    width: 100%;
-    left: 50%;
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 0;
-}
-
-.debug-panel {
-  display: none;
-  height: 100%;
-  width: 50%;
-  padding-left: 10px;
-  padding-top: 10px;
+  width: 100%;
+  left: 50%;
   position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
 }
-
-.debug-panel.active {
-  display: block;
-}
-
-.debug-stats {
-    text-align: left;
-    width: 100%;
-    height: 20%;
-}
-
-.debug-stats span {
-  display: block;
-}
-
-.debug-log {
-    overflow: auto;
-    text-align: left;
-    width: 100%;
-    height: 75%;
-    word-wrap: break-word;
-}
-
 </style>
 
 

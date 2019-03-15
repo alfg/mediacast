@@ -1,16 +1,16 @@
 <template>
   <div class="home">
-    <Sender />
+    <Controls />
   </div>
 </template>
 
 <script>
-import Sender from '@/components/sender/Sender.vue'
+import Controls from '@/components/sender/Controls.vue'
 
 export default {
   name: 'home',
   components: {
-    Sender
+    Controls,
   }
 }
 </script>

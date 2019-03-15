@@ -1,67 +1,62 @@
 <template>
-  <div class="sender container">
-    <img class="logo" src="@/assets/clapper.png" />
-    <h1>MediaCast - Sender</h1>
+  <div class="controls container">
+    <label>Media URL</label>
+    <input
+      v-model="mediaUrl"
+      class="u-full-width"
+      type="text"
+    />
 
-    <div class="controls">
-      <label>Media URL</label>
-      <input
-        v-model="mediaUrl"
-        class="u-full-width"
-        type="text"
-      />
+    <label>License Server URL</label>
+    <input
+      v-model="licenseUrl"
+      class="u-full-width"
+      type="text"
+    />
 
-      <label>License Server URL</label>
-      <input
-        v-model="licenseUrl"
-        class="u-full-width"
-        type="text"
-      />
+    <label for="drm">DRM</label>
+    <select v-model="drm" class="u-full-width" id="drm">
+      <option value="none">None</option>
+      <option value="widevine">Widevine</option>
+      <option value="playready">PlayReady</option>
+    </select>
 
-      <label for="drm">DRM</label>
-      <select v-model="drm" class="u-full-width" id="drm">
-        <option value="none">None</option>
-        <option value="widevine">Widevine</option>
-        <option value="playready">PlayReady</option>
-      </select>
-
-      <div class="control-buttons">
-        <button v-on:click="connect" class="button active" v-if="connected">Connected</button>
-        <button v-on:click="connect" class="button-primary" :disabled="!isChrome" v-else>Connect</button>
-        <span v-if="!isChrome">Google Chrome required!</span>
-        <button v-on:click="loadMedia" v-if="connected">Load Media</button>
-        <button v-on:click="stop" v-if="connected">Stop</button>
-        <button v-on:click="testMessage" v-if="connected">Test Message</button>
-        <label class="debug-toggle" for="checkbox" v-if="connected">
-          <input type="checkbox" id="checkbox" v-model="debugEnabled" @change="onDebugChange($event)">
-          <span>Debug Panel</span>
-        </label>
-      </div>
-
-
-      <div class="player-controls" v-if="connected">
-        <button class="material-icons" v-on:click="pause" v-if="playing">pause_arrow</button>
-        <button class="material-icons" v-on:click="play" v-else>play_arrow</button>
-        <input class="seekBar" type="range" step="any" min="0" v-bind:max="duration" v-bind:value="currentTime" @change="onSeekChange">
-        <button class="rewindButton material-icons">fast_rewind</button>
-        <div class="currentTime">{{timeString}}</div>
-        <button class="fastForwardButton material-icons">fast_forward</button>
-        <button class="muteButton material-icons" v-on:click="setMute" v-if="muted">volume_mute</button>
-        <button class="muteButton material-icons" v-on:click="setMute" v-else>volume_up</button>
-        <input
-          class="volumeBar"
-          type="range"
-          step="any"
-          min="0"
-          max="1"
-          v-bind:value="volume"
-          v-bind:style="{ background: 'linear-gradient(to right, rgb(204, 204, 204) ' + volume * 100 + '%, rgb(0, 0, 0) ' + volume * 100 + '%, rgb(0, 0, 0) 100%)' }"
-          @change="onVolumeChange"
-        />
-      </div>
-
-      <Log v-bind:logs="debugLog" />
+    <div class="control-buttons">
+      <button v-on:click="connect" class="button active" v-if="connected">Connected</button>
+      <button v-on:click="connect" class="button-primary" :disabled="!isChrome" v-else>Connect</button>
+      <span v-if="!isChrome">Google Chrome required!</span>
+      <button v-on:click="loadMedia" v-if="connected">Load Media</button>
+      <button v-on:click="stop" v-if="connected">Stop</button>
+      <button v-on:click="testMessage" v-if="connected">Test Message</button>
+      <label class="debug-toggle" for="checkbox" v-if="connected">
+        <input type="checkbox" id="checkbox" v-model="debugEnabled" @change="onDebugChange($event)">
+        <span>Debug Panel</span>
+      </label>
     </div>
+
+
+    <div class="player-controls" v-if="connected">
+      <button class="material-icons" v-on:click="pause" v-if="playing">pause_arrow</button>
+      <button class="material-icons" v-on:click="play" v-else>play_arrow</button>
+      <input class="seekBar" type="range" step="any" min="0" v-bind:max="duration" v-bind:value="currentTime" @change="onSeekChange">
+      <button class="rewindButton material-icons">fast_rewind</button>
+      <div class="currentTime">{{timeString}}</div>
+      <button class="fastForwardButton material-icons">fast_forward</button>
+      <button class="muteButton material-icons" v-on:click="setMute" v-if="muted">volume_mute</button>
+      <button class="muteButton material-icons" v-on:click="setMute" v-else>volume_up</button>
+      <input
+        class="volumeBar"
+        type="range"
+        step="any"
+        min="0"
+        max="1"
+        v-bind:value="volume"
+        v-bind:style="{ background: 'linear-gradient(to right, rgb(204, 204, 204) ' + volume * 100 + '%, rgb(0, 0, 0) ' + volume * 100 + '%, rgb(0, 0, 0) 100%)' }"
+        @change="onVolumeChange"
+      />
+    </div>
+
+    <Log v-bind:logs="debugLog" />
   </div>
 </template>
 
@@ -372,10 +367,6 @@ export default {
 </script>
 
 <style scoped>
-.logo {
-  width: 48px;
-}
-
 .controls {
   text-align: left;
 }
