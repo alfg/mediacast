@@ -30,6 +30,7 @@ Mediacast is built with [Vue.js](https://vuejs.org) and the [Google Cast SDK](ht
 npm install
 npm run serve
 ```
+* Load `http://localhost:8080/mediacast` in Google Chrome.
 
 ### Compiles and minifies for production
 ```
@@ -37,6 +38,7 @@ npm run build
 ```
 
 ### Deploy
+Deploys to [Github Pages](https://pages.github.com/)
 ```
 npm run deploy
 ```
