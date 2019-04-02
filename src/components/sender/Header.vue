@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <img class="logo" src="@/assets/clapper.png" />
+    <img class="logo" src="@/assets/tv.png" />
     <h1>MediaCast - Sender</h1>
   </div>
 </template>
