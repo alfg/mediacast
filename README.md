@@ -1,7 +1,7 @@
 # mediacast
 > Google Cast - Chrome Sender & CAF Player for testing Media Playback
 
-<p align="center"><img src="src/assets/clapper.png"></img></p>
+<p align="center"><img src="src/assets/tv.png"></img></p>
 
 https://alfg.github.io/mediacast/
 
