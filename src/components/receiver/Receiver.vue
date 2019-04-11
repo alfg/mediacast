@@ -67,6 +67,7 @@ export default {
         const url = loadRequestData.media.contentId;
         const licenseUrl = loadRequestData.media.customData.licenseUrl;
         const drm = loadRequestData.media.customData.drm;
+        const licenseCustomData = loadRequestData.media.customData.licenseCustomData;
         const ext = url.substring(url.lastIndexOf('.'), url.length);
 
         loadRequestData.media.contentType = 'video/mp4';
@@ -83,6 +84,12 @@ export default {
         player.setMediaPlaybackInfoHandler((loadRequest, playbackConfig) => {
           playbackConfig.licenseUrl = licenseUrl;
           playbackConfig.protectionSystem =  this.drms[drm];
+
+          // Currently not supported by CAF;
+          // [cast.framework.media.ShakaPlayer] licenseCustomData is not supported for Shakaplayer. Its value will be ignored. 
+          if (licenseCustomData) {
+            playbackConfig.licenseCustomData = licenseCustomData;
+          }
           this.log('[mediacast:playbackConfig - ' + JSON.stringify(playbackConfig));
           return playbackConfig;
         });

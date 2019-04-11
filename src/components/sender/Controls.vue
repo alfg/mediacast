@@ -21,6 +21,15 @@
       <option value="playready">PlayReady</option>
     </select>
 
+    <div v-if="drm === 'playready'">
+      <label>Custom Data</label>
+      <input
+        v-model="licenseCustomData"
+        class="u-full-width"
+        type="text"
+      />
+    </div>
+
     <div class="control-buttons">
       <button v-on:click="connect" class="button active" v-if="connected">Connected</button>
       <button v-on:click="connect" class="button-primary" :disabled="!isChrome" v-else>Connect</button>
@@ -80,6 +89,7 @@ export default {
       mediaUrl: defaultUrl,
       licenseUrl: defaultLicenseUrl,
       drm: defaultDrm,
+      licenseCustomData: null,
       connected: false,
       loaded: false,
       debugEnabled: true,
@@ -119,6 +129,10 @@ export default {
       if (this.$route.query.drm) {
         this.drm = this.$route.query.drm.toLowerCase();
       }
+
+      if (this.$route.query.customData) {
+        this.licenseCustomData = this.$route.query.customData.toLowerCase();
+      }
     },
     init() {
       window['__onGCastApiAvailable'] = (isAvailable) => {
@@ -147,12 +161,12 @@ export default {
     },
 
     loadMedia() {
-      const { mediaUrl, licenseUrl, drm } = this;
+      const { mediaUrl, licenseUrl, drm, licenseCustomData } = this;
 
       const contentType = 'application/dash+xml';
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
       const mediaInfo = new window.chrome.cast.media.MediaInfo(mediaUrl, contentType);
-      mediaInfo.customData = { licenseUrl, drm };
+      mediaInfo.customData = { licenseUrl, drm, licenseCustomData };
       const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
 
 
