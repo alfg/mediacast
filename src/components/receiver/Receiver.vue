@@ -71,14 +71,16 @@ export default {
 
         loadRequestData.media.contentType = 'video/mp4';
 
-        if (ext.includes('.mpd')) {
+        if (ext.includes('mpd')) {
           loadRequestData.media.contentType = 'application/dash+xml';
-        } else if (ext.includes('.ism')) {
-          loadRequestData.media.contentType = 'application/vnd.ms-sstr+xml';
-        } else if (ext.includes('.m3u8')) {
+        } else if (ext.includes('m3u8')) {
           loadRequestData.media.contentType = 'application/vnd.apple.mpegurl';
-        }
 
+          // TODO: Create option to set hlsSegmentFormat option.
+          loadRequestData.media.hlsSegmentFormat = cast.framework.messages.HlsSegmentFormat.TS;
+        } else if (ext.includes('ism')) {
+          loadRequestData.media.contentType = 'application/vnd.ms-sstr+xml';
+        }
 
         player.setMediaPlaybackInfoHandler((loadRequest, playbackConfig) => {
           playbackConfig.licenseUrl = licenseUrl;
