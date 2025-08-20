@@ -15,6 +15,8 @@ import DebugPanel from '@/components/receiver/DebugPanel.vue';
 
 const { namespace } = config;
 
+let vCastReceiverOptions;
+
 export default {
   name: 'receiver',
   components: {
@@ -43,6 +45,8 @@ export default {
 
       // TODO: Set debug level from sender.
       cast.framework.CastReceiverContext.getInstance().setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
+	
+		vCastReceiverOptions = new cast.framework.CastReceiverOptions();
 
       // Set DRM contexts.
       this.setDrms();
@@ -82,9 +86,22 @@ export default {
           loadRequestData.media.contentType = 'application/vnd.ms-sstr+xml';
         }
 
+			/////// apply sender's loadRequestData.media.customData.CastReceiverOptions to CastReceiverOptions
+			if (loadRequestData.media.customData && loadRequestData.media.customData.CastReceiverOptions) {
+				for (let i in loadRequestData.media.customData.CastReceiverOptions)
+					if (i !== "playbackConfig") vCastReceiverOptions[i] = loadRequestData.media.customData.CastReceiverOptions[i];
+			}
+
         player.setMediaPlaybackInfoHandler((loadRequest, playbackConfig) => {
           playbackConfig.licenseUrl = licenseUrl;
           playbackConfig.protectionSystem =  this.drms[drm];
+
+			////// apply sender's loadRequest.media.customData.PlaybackConfig to playbackConfig
+			if (loadRequest.media.customData && loadRequest.media.customData.PlaybackConfig) {
+				for (let i in loadRequest.media.customData.PlaybackConfig)
+					playbackConfig[i] = loadRequest.media.customData.PlaybackConfig[i];
+			}
+
           this.log('[mediacast:playbackConfig - ' + JSON.stringify(playbackConfig));
           return playbackConfig;
         });
@@ -182,5 +199,3 @@ export default {
   z-index: 0;
 }
 </style>
-
-
